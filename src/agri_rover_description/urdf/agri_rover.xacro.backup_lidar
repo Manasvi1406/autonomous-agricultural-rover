@@ -1,0 +1,286 @@
+<?xml version="1.0"?>
+
+<robot name="agri_rover" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ========================= -->
+  <!--        ROBOT SIZE         -->
+  <!-- ========================= -->
+
+  <xacro:property name="chassis_length" value="0.50"/>
+  <xacro:property name="chassis_width"  value="0.35"/>
+  <xacro:property name="chassis_height" value="0.12"/>
+
+  <xacro:property name="wheel_radius" value="0.075"/>
+  <xacro:property name="wheel_width"  value="0.05"/>
+
+  <!-- ========================= -->
+  <!--        BASE LINK          -->
+  <!-- ========================= -->
+
+  <link name="base_link">
+
+    <visual>
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+
+      <material name="green">
+        <color rgba="0.1 0.6 0.1 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+      <mass value="5.0"/>
+
+      <inertia
+        ixx="0.10"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="0.10"
+        iyz="0.0"
+        izz="0.15"/>
+    </inertial>
+
+  </link>
+
+
+  <!-- ========================= -->
+  <!--      WHEEL MACRO          -->
+  <!-- ========================= -->
+
+  <xacro:macro name="wheel" params="name x y">
+
+    <link name="${name}">
+
+      <visual>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+
+        <geometry>
+          <cylinder
+            radius="${wheel_radius}"
+            length="${wheel_width}"/>
+        </geometry>
+
+        <material name="black">
+          <color rgba="0.05 0.05 0.05 1.0"/>
+        </material>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+
+        <geometry>
+          <cylinder
+            radius="${wheel_radius}"
+            length="${wheel_width}"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <mass value="0.5"/>
+        <inertia
+          ixx="0.002"
+          ixy="0.0"
+          ixz="0.0"
+          iyy="0.002"
+          iyz="0.0"
+          izz="0.002"/>
+      </inertial>
+
+    </link>
+
+    <joint name="${name}_joint" type="continuous">
+
+      <parent link="base_link"/>
+      <child link="${name}"/>
+
+      <origin xyz="${x} ${y} 0.075" rpy="0 0 0"/>
+
+      <axis xyz="0 1 0"/>
+
+    </joint>
+
+  </xacro:macro>
+
+
+  <!-- ========================= -->
+  <!--       FOUR WHEELS         -->
+  <!-- ========================= -->
+
+  <!-- Front Left -->
+  <xacro:wheel
+    name="front_left_wheel"
+    x="0.18"
+    y="0.20"/>
+
+  <!-- Front Right -->
+  <xacro:wheel
+    name="front_right_wheel"
+    x="0.18"
+    y="-0.20"/>
+
+  <!-- Rear Left -->
+  <xacro:wheel
+    name="rear_left_wheel"
+    x="-0.18"
+    y="0.20"/>
+
+  <!-- Rear Right -->
+  <xacro:wheel
+    name="rear_right_wheel"
+    x="-0.18"
+    y="-0.20"/>
+
+
+  <!-- ========================= -->
+  <!--     GAZEBO MATERIALS      -->
+  <!-- ========================= -->
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Green</material>
+  </gazebo>
+
+  <gazebo reference="front_left_wheel">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="front_right_wheel">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="rear_left_wheel">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="rear_right_wheel">
+    <material>Gazebo/Black</material>
+  </gazebo>
+  <!-- ========================= -->
+  <!--       ROS2 CONTROL        -->
+  <!-- ========================= -->
+
+  <ros2_control name="AgriRoverSystem" type="system">
+
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <!-- Front Left Wheel -->
+    <joint name="front_left_wheel_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- Front Right Wheel -->
+    <joint name="front_right_wheel_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- Rear Left Wheel -->
+    <joint name="rear_left_wheel_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- Rear Right Wheel -->
+    <joint name="rear_right_wheel_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+  </ros2_control>
+  <!-- ========================= -->
+  <!--     GAZEBO ROS2 CONTROL   -->
+  <!-- ========================= -->
+
+    <gazebo>
+    <plugin
+      filename="libgz_ros2_control-system.so"
+      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>
+        /home/manasvi/agri_rover_ws/src/agri_rover_gazebo/config/controllers.yaml
+      </parameters>
+    </plugin>
+  </gazebo>
+  <!-- LiDAR -->
+  <link name="lidar_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.04" length="0.05"/>
+      </geometry>
+      <material name="lidar_material">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.04" length="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.18 0 0.25" rpy="0 0 0"/>
+  </joint>
+
+    <!-- ========================= -->
+  <!--          LiDAR            -->
+  <!-- ========================= -->
+
+  <gazebo reference="lidar_link">
+    <sensor name="lidar_sensor" type="gpu_lidar">
+      <pose>0 0 0 0 0 0</pose>
+
+      <update_rate>10</update_rate>
+
+      <topic>/scan</topic>
+
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.141592</min_angle>
+            <max_angle>3.141592</max_angle>
+          </horizontal>
+        </scan>
+
+        <range>
+          <min>0.12</min>
+          <max>10.0</max>
+          <resolution>0.01</resolution>
+        </range>
+
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+    </sensor>
+  </gazebo>
+</robot>

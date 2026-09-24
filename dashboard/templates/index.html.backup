@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Agri Rover Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7f3;
+            color: #1f2937;
+        }
+
+        header {
+            background: #1f6f43;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 25px;
+        }
+
+        .status {
+            background: white;
+            color: #1f6f43;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            font-size: 15px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1f6f43;
+        }
+
+        .unit {
+            font-size: 16px;
+            color: #6b7280;
+        }
+
+        .location-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .location-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        }
+
+        .location-box h3 {
+            margin-bottom: 15px;
+        }
+
+        .coordinates {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f6f43;
+        }
+
+        .navigation {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        .nav-status {
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .executing {
+            color: #d97706;
+        }
+
+        .succeeded {
+            color: #1f6f43;
+        }
+
+        .failed,
+        .canceled {
+            color: #dc2626;
+        }
+
+        .idle {
+            color: #6b7280;
+        }
+
+        .last-update {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 800px) {
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .location-card {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <h1>🚜 Autonomous Agricultural Rover</h1>
+
+    <div class="status" id="systemStatus">
+        Connecting...
+    </div>
+
+</header>
+
+
+<div class="container">
+
+    <h2 class="section-title">
+        🌱 Environmental Sensors
+    </h2>
+
+    <div class="cards">
+
+        <div class="card">
+
+            <h3>Soil Moisture</h3>
+
+            <div>
+                <span class="value" id="soil">--</span>
+                <span class="unit">%</span>
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Temperature</h3>
+
+            <div>
+                <span class="value" id="temperature">--</span>
+                <span class="unit">°C</span>
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Humidity</h3>
+
+            <div>
+                <span class="value" id="humidity">--</span>
+                <span class="unit">%</span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <h2 class="section-title">
+        📍 Rover Location
+    </h2>
+
+    <div class="location-card">
+
+        <div class="location-box">
+
+            <h3>X Coordinate</h3>
+
+            <div class="coordinates">
+                <span id="x">--</span> m
+            </div>
+
+        </div>
+
+
+        <div class="location-box">
+
+            <h3>Y Coordinate</h3>
+
+            <div class="coordinates">
+                <span id="y">--</span> m
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <h2 class="section-title">
+        🤖 Navigation
+    </h2>
+
+    <div class="navigation">
+
+        <h3>Rover Navigation Status</h3>
+
+        <div id="navigationStatus"
+             class="nav-status idle">
+            ● IDLE
+        </div>
+
+        <div class="last-update">
+
+            Last sensor update:
+            <span id="timestamp">--</span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+async function updateDashboard() {
+
+    try {
+
+        const response =
+            await fetch("/api/data");
+
+        const result =
+            await response.json();
+
+
+        if (result.status === "online") {
+
+            const data =
+                result.data;
+
+
+            document.getElementById("soil")
+                .textContent =
+                parseFloat(
+                    data.soil_moisture
+                ).toFixed(1);
+
+
+            document.getElementById("temperature")
+                .textContent =
+                parseFloat(
+                    data.temperature
+                ).toFixed(1);
+
+
+            document.getElementById("humidity")
+                .textContent =
+                parseFloat(
+                    data.humidity
+                ).toFixed(1);
+
+
+            document.getElementById("x")
+                .textContent =
+                parseFloat(
+                    data.x
+                ).toFixed(2);
+
+
+            document.getElementById("y")
+                .textContent =
+                parseFloat(
+                    data.y
+                ).toFixed(2);
+
+
+            document.getElementById("timestamp")
+                .textContent =
+                data.timestamp;
+
+
+            document.getElementById("systemStatus")
+                .textContent =
+                "● System Online";
+
+
+            updateNavigation(
+                result.navigation
+            );
+
+        }
+
+    }
+
+    catch (error) {
+
+        document.getElementById(
+            "systemStatus"
+        ).textContent =
+            "Connection Error";
+
+        console.error(error);
+
+    }
+
+}
+
+
+function updateNavigation(status) {
+
+    const element =
+        document.getElementById(
+            "navigationStatus"
+        );
+
+
+    const labels = {
+
+        "IDLE":
+            "● IDLE",
+
+        "ACCEPTED":
+            "● GOAL ACCEPTED",
+
+        "EXECUTING":
+            "● NAVIGATING",
+
+        "CANCELING":
+            "● CANCELING",
+
+        "SUCCEEDED":
+            "● GOAL REACHED",
+
+        "CANCELED":
+            "● GOAL CANCELED",
+
+        "FAILED":
+            "● NAVIGATION FAILED",
+
+        "UNKNOWN":
+            "● UNKNOWN"
+
+    };
+
+
+    element.textContent =
+        labels[status] ||
+        "● " + status;
+
+
+    element.className =
+        "nav-status " +
+        status.toLowerCase();
+
+}
+
+
+// Initial update
+updateDashboard();
+
+// Update every 2 seconds
+setInterval(
+    updateDashboard,
+    2000
+);
+
+</script>
+
+</body>
+</html>

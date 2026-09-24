@@ -1,0 +1,28 @@
+build/
+install/
+log/
+logs/
+**/__pycache__/
+*.pyc
+dashboard/venv/
+yolo/venv/
+*.egg-info/
+agricultural_data.csv
+yolo_detections.csv
+frames_*.gv
+frames_*.pdf
+
+# YOLO datasets and training outputs
+yolo/plant_dataset/
+yolo/plant_dataset_small/
+yolo/plant_doc_detection/
+yolo/runs/
+
+# Python virtual environments
+yolo/venv/
+dashboard/venv/
+
+# YOLO model weights
+yolo/*.pt
+!yolo/models/best.pt
+yolo/**/weights/*.pt

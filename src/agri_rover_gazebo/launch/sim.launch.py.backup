@@ -1,0 +1,155 @@
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess
+from launch.substitutions import Command, PathJoinSubstitution, FindExecutable
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+
+
+def generate_launch_description():
+
+    # Package locations
+    description_pkg = get_package_share_directory(
+        'agri_rover_description'
+    )
+
+    gazebo_pkg = get_package_share_directory(
+        'agri_rover_gazebo'
+    )
+
+    # Robot Xacro file
+    xacro_file = PathJoinSubstitution([
+        description_pkg,
+        'urdf',
+        'agri_rover.xacro'
+    ])
+
+    # Gazebo world file
+    world_file = PathJoinSubstitution([
+        gazebo_pkg,
+        'worlds',
+        'agri_field.sdf'
+    ])
+
+    # Start Gazebo
+    gz_sim = ExecuteProcess(
+        cmd=[
+            'gz',
+            'sim',
+            '-r',
+            world_file
+        ],
+        output='screen'
+    )
+
+    # Robot State Publisher
+    robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        parameters=[
+            {
+                'robot_description': Command([
+                    FindExecutable(name='xacro'),
+                    ' ',
+                    xacro_file
+                ]),
+                'use_sim_time': True
+            }
+        ],
+        output='screen'
+    )
+
+    # Spawn robot into Gazebo
+    spawn_entity = Node(
+        package='ros_gz_sim',
+        executable='create',
+        arguments=[
+            '-topic',
+            'robot_description',
+            '-name',
+            'agri_rover',
+            '-x',
+            '0',
+            '-y',
+            '0',
+            '-z',
+            '0.20'
+        ],
+        output='screen'
+    )
+
+    # Joint State Broadcaster
+    joint_state_broadcaster = ExecuteProcess(
+        cmd=[
+            'ros2',
+            'run',
+            'controller_manager',
+            'spawner',
+            'joint_state_broadcaster'
+        ],
+        output='screen'
+    )
+
+    # Differential Drive Controller
+    diff_drive_controller = ExecuteProcess(
+        cmd=[
+            'ros2',
+            'run',
+            'controller_manager',
+            'spawner',
+            'diff_drive_controller'
+        ],
+        output='screen'
+    )
+
+    # ROS 2 / Gazebo clock bridge
+    clock_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
+        ],
+        output='screen'
+    )
+
+    # Gazebo LiDAR → ROS 2 LaserScan bridge
+    lidar_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan'
+        ],
+        output='screen'
+    )
+
+    # Permanent LiDAR TF
+    #
+    # Gazebo publishes the LaserScan frame as:
+    # agri_rover/base_footprint/lidar_sensor
+    #
+    # This static transform connects that frame to base_link.
+    lidar_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=[
+            '--x', '0.18',
+            '--y', '0.0',
+            '--z', '0.25',
+            '--yaw', '0.0',
+            '--pitch', '0.0',
+            '--roll', '0.0',
+            '--frame-id', 'base_link',
+            '--child-frame-id', 'agri_rover/base_footprint/lidar_sensor'
+        ],
+        output='screen'
+    )
+
+    return LaunchDescription([
+        gz_sim,
+        clock_bridge,
+        lidar_bridge,
+        robot_state_publisher,
+        spawn_entity,
+        joint_state_broadcaster,
+        diff_drive_controller,
+        lidar_tf
+    ])
