@@ -62,16 +62,16 @@ The main objectives of the project are:
              │                  │                   │
              ▼                  ▼                   ▼
       ┌──────────────────────────────────────────────────┐
-      │                  ROS 2 Processing                 │
+      │                  ROS 2 Processing                │
       │                                                  │
-      │  Sensor Processing │ SLAM │ Localization │ Nav2 │
+      │  Sensor Processing │ SLAM │ Localization │ Nav2  │
       └───────────────────────────┬──────────────────────┘
                                   │
                      ┌────────────┴────────────┐
                      ▼                         ▼
              ┌──────────────┐         ┌────────────────┐
-             │ Autonomous  │         │ YOLO Detection │
-             │ Navigation  │         │                │
+             │ Autonomous   │         │ YOLO Detection │
+             │ Navigation   │         │                │
              └──────┬───────┘         └───────┬────────┘
                     │                         │
                     └────────────┬────────────┘
@@ -285,180 +285,6 @@ Example information:
 
 ---
 
-# 💻 Installation
-
-## 1. Install ROS 2 Jazzy
-
-Install **Ubuntu 24.04 LTS** and ROS 2 Jazzy.
-
-Verify installation:
-
-```bash
-ros2 --version
-```
-
----
-
-## 2. Create the Workspace
-
-```bash
-mkdir -p ~/autonomous_agricultural_rover_ws/src
-cd ~/autonomous_agricultural_rover_ws
-```
-
-Clone the repository:
-
-```bash
-cd ~/autonomous_agricultural_rover_ws/src
-git clone <YOUR-GITHUB-REPOSITORY-URL>
-```
-
----
-
-## 3. Install Dependencies
-
-```bash
-cd ~/autonomous_agricultural_rover_ws
-rosdep install --from-paths src --ignore-src -r -y
-```
-
----
-
-## 4. Build the Workspace
-
-```bash
-colcon build --symlink-install
-```
-
-Source the workspace:
-
-```bash
-source install/setup.bash
-```
-
-For convenience:
-
-```bash
-echo "source ~/autonomous_agricultural_rover_ws/install/setup.bash" >> ~/.bashrc
-source ~/.bashrc
-```
-
----
-
-# ▶️ Running the Simulation
-
-Start Gazebo:
-
-```bash
-ros2 launch <gazebo_package> <world_launch_file>.launch.py
-```
-
-Start the navigation system:
-
-```bash
-ros2 launch <navigation_package> navigation.launch.py
-```
-
-Start RViz2:
-
-```bash
-rviz2
-```
-
----
-
-# 🔎 Useful ROS 2 Commands
-
-Check active nodes:
-
-```bash
-ros2 node list
-```
-
-Check available topics:
-
-```bash
-ros2 topic list
-```
-
-Monitor LiDAR:
-
-```bash
-ros2 topic echo /scan
-```
-
-Monitor odometry:
-
-```bash
-ros2 topic echo /odom
-```
-
-Check transforms:
-
-```bash
-ros2 run tf2_tools view_frames
-```
-
-Check ROS system:
-
-```bash
-ros2 doctor
-```
-
----
-
-# 🧭 Navigation Workflow
-
-```text
-Start Simulation
-       ↓
-Spawn Agricultural Rover
-       ↓
-Initialize Sensors
-       ↓
-Generate / Load Map
-       ↓
-Localization
-       ↓
-Set Navigation Goal
-       ↓
-Path Planning
-       ↓
-Obstacle Detection
-       ↓
-Obstacle Avoidance
-       ↓
-Reach Goal
-       ↓
-Collect Agricultural Data
-       ↓
-Send Data to Dashboard
-```
-
----
-
-# 🧠 AI Workflow
-
-```text
-Camera Image
-     ↓
-Image Preprocessing
-     ↓
-YOLO Model
-     ↓
-Plant Detection
-     ↓
-Healthy / Potentially Diseased
-     ↓
-Detection Confidence
-     ↓
-Rover Position + Timestamp
-     ↓
-Database / Dashboard
-```
-
----
-
 # 📊 Performance Evaluation
 
 The project can be evaluated using the following metrics:
@@ -490,17 +316,6 @@ Future improvements may include:
 * Real-time GPS tracking
 * Autonomous field coverage planning
 * Historical crop-health analysis
-
----
-
-# 🎓 Academic Project
-
-**Project Type:** B.Tech Major Project
-**Domain:** Robotics, Artificial Intelligence & Smart Agriculture
-**Platform:** ROS 2 + Gazebo
-**Navigation:** Nav2
-**AI:** YOLO + Computer Vision
-**Operating System:** Ubuntu 24.04 LTS / WSL 2
 
 ---
 
